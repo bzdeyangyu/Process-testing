@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CC 项目 · 系统架构图</title>
+<style>
+  :root{
+    --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;
+    --text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;
+    --orange:#d29922;--purple:#bc8cff;--red:#f85149;--teal:#39d353;
+    --layer1:#1f2937;--layer2:#1a2332;--layer3:#1a2a1a;--layer4:#2a1a2a;
+    --layer5:#2a2210;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;min-height:100vh}
+  h1{text-align:center;padding:28px 0 4px;font-size:22px;font-weight:700;letter-spacing:.5px}
+  .subtitle{text-align:center;color:var(--muted);font-size:13px;margin-bottom:28px}
+
+  /* ── MAIN LAYOUT ── */
+  .page{max-width:1360px;margin:0 auto;padding:0 20px 60px}
+
+  /* ── LEGEND ── */
+  .legend{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:32px}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+  .legend-dot{width:12px;height:12px;border-radius:3px}
+
+  /* ── LAYER CARD ── */
+  .layer{border-radius:12px;border:1px solid var(--border);padding:18px 20px 20px;margin-bottom:18px;position:relative}
+  .layer-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;padding:3px 8px;border-radius:4px;display:inline-block}
+  .modules{display:flex;flex-wrap:wrap;gap:12px}
+
+  /* ── MODULE BOX ── */
+  .mod{border-radius:8px;border:1px solid var(--border);padding:12px 14px;min-width:160px;flex:1;cursor:default;transition:transform .15s,box-shadow .15s}
+  .mod:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.4)}
+  .mod-name{font-weight:600;font-size:13px;margin-bottom:4px}
+  .mod-file{font-size:11px;color:var(--muted);font-family:monospace;margin-bottom:6px}
+  .mod-desc{font-size:12px;color:var(--muted);line-height:1.5}
+  .tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:10px;margin-top:5px;margin-right:4px}
+
+  /* ── DATAFLOW ── */
+  .flow-section{margin:28px 0}
+  .flow-title{font-size:15px;font-weight:600;margin-bottom:16px;color:var(--accent)}
+  .flow{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin-bottom:12px}
+  .flow-node{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 12px;font-size:12px;white-space:nowrap}
+  .flow-arrow{font-size:18px;color:var(--muted);padding:0 6px;user-select:none}
+  .flow-label{font-size:11px;color:var(--orange);margin:0 2px}
+
+  /* ── SPECIALIST GRID ── */
+  .spec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:10px}
+  .spec-card{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px 12px}
+  .spec-name{font-weight:600;font-size:12px;margin-bottom:3px}
+  .spec-group{font-size:10px;padding:1px 7px;border-radius:10px;display:inline-block;margin-bottom:5px}
+  .spec-desc{font-size:11px;color:var(--muted);line-height:1.45}
+  .spec-status{font-size:10px;margin-top:5px}
+
+  /* ── API SECTION ── */
+  .api-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+  .api-table th{background:var(--surface2);padding:8px 12px;text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border)}
+  .api-table td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  .method{font-weight:700;font-family:monospace;font-size:11px;padding:2px 6px;border-radius:4px}
+  .get{background:#1a3a1a;color:var(--green)}
+  .post{background:#1a2a3a;color:var(--accent)}
+
+  /* ── COLORS PER LAYER ── */
+  .l-infra{background:var(--layer2);border-color:#1e3a5f}
+  .l-infra .layer-title{background:#1e3a5f;color:var(--accent)}
+  .l-infra .mod{background:#162033}
+
+  .l-business{background:var(--layer3);border-color:#1e4a1e}
+  .l-business .layer-title{background:#1e4a1e;color:var(--teal)}
+  .l-business .mod{background:#152415}
+
+  .l-prompt{background:var(--layer4);border-color:#3a1e4a}
+  .l-prompt .layer-title{background:#3a1e4a;color:var(--purple)}
+  .l-prompt .mod{background:#231535}
+
+  .l-tools{background:var(--layer5);border-color:#4a3a1e}
+  .l-tools .layer-title{background:#4a3a1e;color:var(--orange)}
+  .l-tools .mod{background:#2a2210}
+
+  .l-io{background:var(--surface);border-color:var(--border)}
+  .l-io .layer-title{background:var(--surface2);color:var(--text)}
+  .l-io .mod{background:var(--surface2)}
+
+  /* ── MISC ── */
+  .accent{color:var(--accent)}.green{color:var(--green)}.orange{color:var(--orange)}
+  .purple{color:var(--purple)}.red{color:var(--red)}.teal{color:var(--teal)}
+
+  .tag-mvp{background:#1a3a1a;color:var(--green)}
+  .tag-stub{background:#2a2210;color:var(--orange)}
+  .tag-core{background:#1e3a5f;color:var(--accent)}
+  .tag-real{background:#3a1e4a;color:var(--purple)}
+
+  .sep{height:1px;background:var(--border);margin:24px 0}
+
+  .callout{background:var(--surface2);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:var(--muted);margin:12px 0}
+
+  /* ── TABS ── */
+  .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px}
+  .tab{padding:8px 18px;cursor:pointer;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;transition:color .1s,border-color .1s}
+  .tab:hover{color:var(--text)}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tab-content{display:none}.tab-content.active{display:block}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>CC · AI 空间设计工作流 系统架构图</h1>
+  <p class="subtitle">基于 ReAct + Skills-First + GLM 的空间设计 Agent Runtime &nbsp;|&nbsp; Python 3.13 &nbsp;|&nbsp; V1</p>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#1e3a5f"></div>Agent Runtime（底层基础设施）</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1e4a1e"></div>Design Workflow（业务逻辑层）</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3a1e4a"></div>Prompt 体系</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4a3a1e"></div>Tools &amp; 外部服务</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#21262d"></div>输入 / 输出 / 存储</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(this,'overview')">总体架构</div>
+    <div class="tab" onclick="switchTab(this,'dataflow')">数据流</div>
+    <div class="tab" onclick="switchTab(this,'specialists')">Specialist 清单</div>
+    <div class="tab" onclick="switchTab(this,'api')">HTTP API</div>
+    <div class="tab" onclick="switchTab(this,'stack')">技术栈</div>
+  </div>
+
+  <!-- ══════ TAB: OVERVIEW ══════ -->
+  <div class="tab-content active" id="overview">
+
+    <!-- L0: 外部触发 -->
+    <div class="layer l-io">
+      <div class="layer-title">外部入口 / 触发层</div>
+      <div class="modules">
+        <div class="mod">
+          <div class="mod-name">HTTP Server</div>
+          <div class="mod-file">server.py · port 8765</div>
+          <div class="mod-desc">ThreadingHTTPServer；<br>提供 REST API（/run /boards /status）和静态文件服务</div>
+          <span class="tag tag-core">入口</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Dashboard (FlowBoard)</div>
+          <div class="mod-file">dashboard/index.html</div>
+          <div class="mod-desc">单文件 SPA；轮询 /boards/current 展示实时看板、图片画廊与历史记录</div>
+          <span class="tag tag-core">前端</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">CLI 入口</div>
+          <div class="mod-file">demo/run_mvp.py<br>demo/run_demo.py</div>
+          <div class="mod-desc">命令行启动 MVP / Full 工作流；支持 --brief --image-provider 参数</div>
+          <span class="tag tag-core">CLI</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Config</div>
+          <div class="mod-file">config.py · .env.example</div>
+          <div class="mod-desc">全局路径常量、LLM_MODE / BASE_URL / API_KEY / MODEL_NAME</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L1: Design Workflow -->
+    <div class="layer l-business">
+      <div class="layer-title">业务逻辑层 · design_workflow/</div>
+      <div class="modules">
+        <div class="mod" style="flex:2;min-width:240px">
+          <div class="mod-name">Orchestrator</div>
+          <div class="mod-file">agents/orchestrator.py</div>
+          <div class="mod-desc">工作流编排核心；内置 <code>run_mvp_workflow</code>（3节点）和 <code>run_full_workflow</code>（12节点）两套流程；通过 SkillRegistry 驱动各 Specialist；向 ProjectBoardTracker 汇报进度；向 EventLogger 写入事件流</div>
+          <span class="tag tag-mvp">MVP</span><span class="tag tag-core">核心</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Leader Agent 层</div>
+          <div class="mod-file">agents/leaders/</div>
+          <div class="mod-desc">四大 Leader 对应任务簇：<br>
+            <b>Research</b>: case_research<br>
+            <b>Creative</b>: concept/storyline/zoning/material<br>
+            <b>Tech</b>: visual_prompt/video_script<br>
+            <b>PM</b>: cost_estimate/report/feedback/progress
+          </div>
+          <span class="tag tag-stub">扩展中</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">LLM Client</div>
+          <div class="mod-file">llm_client.py<br>llm_helpers.py</div>
+          <div class="mod-desc">create_glm_client() 封装 OpenAIAdapter；<br>request_json() 提供带 fallback 的 JSON 请求与深合并</div>
+          <span class="tag tag-real">GLM-4</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Style Router</div>
+          <div class="mod-file">specialists/style_router.py</div>
+          <div class="mod-desc">关键词多字段打分匹配，将项目类型/风格偏好映射到 6 种设计风格库条目（tech-showroom / museum-narrative / brand-experience 等）</div>
+          <span class="tag tag-mvp">MVP</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- L2: Prompt 体系 -->
+    <div class="layer l-prompt">
+      <div class="layer-title">三层 Prompt 体系 · design_workflow/prompts/</div>
+      <div class="modules">
+        <div class="mod">
+          <div class="mod-name">System Prompts</div>
+          <div class="mod-file">system_prompts.py</div>
+          <div class="mod-desc">12 个 Specialist 的角色定义，含能力边界、CoT 步骤、输出格式规范</div>
+          <span class="tag tag-real">角色层</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Exec Prompts</div>
+          <div class="mod-file">exec_prompts.py</div>
+          <div class="mod-desc">执行指令 Prompt，包含具体操作指令和 JSON Schema 输出要求</div>
+          <span class="tag tag-real">指令层</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Scene Prompts</div>
+          <div class="mod-file">scene_prompts.py</div>
+          <div class="mod-desc">场景上下文 Prompt，注入项目类型/面积/约束等运行时动态信息</div>
+          <span class="tag tag-real">场景层</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Specialist Specs</div>
+          <div class="mod-file">specialist_specs.py</div>
+          <div class="mod-desc">各 Specialist 的专项规格（VISUAL_BLUEPRINT / MATERIAL_STYLE 等预定义 Prompt 常量）</div>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Prompt Quality</div>
+          <div class="mod-file">specialists/prompt_quality.py</div>
+          <div class="mod-desc">Prompt 质量校验（结构完整性）、自动修复与 compile_prompt() 注入管线</div>
+          <span class="tag tag-mvp">MVP</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- L3: Agent Runtime -->
+    <div class="layer l-infra">
+      <div class="layer-title">Agent Runtime 基础设施层 · src/agent_runtime/</div>
+      <div class="modules">
+        <div class="mod">
+          <div class="mod-name accent">AgentEngine (ReAct)</div>
+          <div class="mod-file">engine.py</div>
+          <div class="mod-desc">主循环：发消息→收 LLM 回复→执行工具→写结果→判断终止；支持 cancel_event 中断、重复调用检测（超 2 次阻断）、Checkpoint 保存</div>
+          <span class="tag tag-core">核心</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name accent">SkillRegistry</div>
+          <div class="mod-file">skill_registry.py</div>
+          <div class="mod-desc">Skill 注册与同步调用；SkillDef 含 name/input_schema/output_schema/handler/upgrade_path</div>
+          <span class="tag tag-core">核心</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">LLM Adapters</div>
+          <div class="mod-file">llm.py</div>
+          <div class="mod-desc">OpenAIAdapter / AnthropicAdapter；纯 stdlib HTTP（urllib）；消息压缩（CompressionSettings）；Summarizer Protocol</div>
+          <span class="tag tag-real">适配器</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">ToolRegistry</div>
+          <div class="mod-file">tools.py</div>
+          <div class="mod-desc">动态工具加载；超长输出 Blob 化（ToolOutputPolicy）；安全执行（ExecRequest: program+args，拒绝字符串拼接）</div>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Storage</div>
+          <div class="mod-file">storage.py</div>
+          <div class="mod-desc">会话快照（InMemory/File SessionStore）；Checkpoint；Blob（大输出外置）；三层存储（会话/Artifact/审计）</div>
+        </div>
+        <div class="mod">
+          <div class="mod-name">ProjectBoardTracker</div>
+          <div class="mod-file">board.py</div>
+          <div class="mod-desc">项目看板：MVP 4 阶段 / Full 13 阶段；mark_stage_running/completed；落盘 project_board_current.json</div>
+          <span class="tag tag-core">看板</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Observability</div>
+          <div class="mod-file">observability.py<br>logger.py<br>schemas.py</div>
+          <div class="mod-desc">EventEnvelope（trace_id/topic/event_type/producer/payload）；InMemory/File EventSink；EventLogger 批量写入 mvp_log.json</div>
+        </div>
+        <div class="mod">
+          <div class="mod-name">AgentRuntime</div>
+          <div class="mod-file">runtime.py</div>
+          <div class="mod-desc">多 Agent 会话管理；register_agent/start/cancel/wait；SessionView 轻量快照</div>
+        </div>
+        <div class="mod">
+          <div class="mod-name">HookRegistry</div>
+          <div class="mod-file">hooks.py</div>
+          <div class="mod-desc">PreToolUse / PostToolUse / TaskCompleted / Stop hooks；wiki_update 等副作用通过 PostToolUse 沉淀</div>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Core Types</div>
+          <div class="mod-file">types.py</div>
+          <div class="mod-desc">Message / ToolCall / ToolResult / Checkpoint / DecisionEvent / RuntimeState；ensure_tool_protocol() 协议校验</div>
+        </div>
+        <div class="mod">
+          <div class="mod-name">API Layer</div>
+          <div class="mod-file">api.py</div>
+          <div class="mod-desc">AgentRuntimeAPI / create_http_server()；把 Runtime 能力暴露为 HTTP 接口</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L4: Tools & External -->
+    <div class="layer l-tools">
+      <div class="layer-title">工具层 &amp; 外部服务</div>
+      <div class="modules">
+        <div class="mod">
+          <div class="mod-name">Mock Tools</div>
+          <div class="mod-file">tools/mock_tools.py</div>
+          <div class="mod-desc">parse_brief / extract_constraints / validate_requirements / get_design_spec / color_palette / material_spec / style_inject / wiki_update / wiki_query / wiki_lint</div>
+          <span class="tag tag-stub">原子工具</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Image Gen</div>
+          <div class="mod-file">tools/image_gen.py</div>
+          <div class="mod-desc">多 Provider：CogView（GLM，cogview-3-plus）/ 通义万象（WANX）/ Mock；并发 ThreadPoolExecutor（default 6 workers）；429 限流自动重试</div>
+          <span class="tag tag-real">AI 生图</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Design Library</div>
+          <div class="mod-file">design_library/*/DESIGN.md</div>
+          <div class="mod-desc">6 种风格库（tech-showroom / brand-experience / commercial-exhibition / museum-narrative / architectural-viz / cultural-space）；每份含 HEX / MATERIAL / PROMPT 结构化字段</div>
+          <span class="tag tag-core">知识库</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Wiki</div>
+          <div class="mod-file">wiki/pages/*.md</div>
+          <div class="mod-desc">运行期知识库；wiki_update 幂等追加；wiki_query 关键词命中；demo 结束执行 wiki_lint（孤页/冲突/过期检查）</div>
+          <span class="tag tag-core">知识回写</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">GLM-4 / CogView API</div>
+          <div class="mod-file">bigmodel.cn</div>
+          <div class="mod-desc">LLM：/api/paas/v4/chat/completions（OpenAI 兼容）<br>生图：/api/paas/v4/images/generations</div>
+          <span class="tag tag-real">外部 API</span>
+        </div>
+        <div class="mod">
+          <div class="mod-name">PPTX 生成</div>
+          <div class="mod-file">generate_pptx.py</div>
+          <div class="mod-desc">基于 python-pptx；生成 22 页项目方案 PPT；输出到 output/空间设计AI工作流方案.pptx</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L5: Output / Storage -->
+    <div class="layer l-io">
+      <div class="layer-title">输出 / 持久化层 · output/</div>
+      <div class="modules">
+        <div class="mod">
+          <div class="mod-name">Board JSON</div>
+          <div class="mod-file">output/board/project_board_*.json</div>
+          <div class="mod-desc">按 run_id 落盘看板快照；project_board_current.json 供 API 实时读取；project_board_index.json 存历史索引</div>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Result JSON</div>
+          <div class="mod-file">output/mvp_result.json<br>output/demo_result.json</div>
+          <div class="mod-desc">工作流完整输出（structured_brief + material_spec + visual_prompt + generated_schemes）</div>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Event Log</div>
+          <div class="mod-file">output/mvp_log.json</div>
+          <div class="mod-desc">EventEnvelope 数组；含 trace_id/topic/event_type/producer/payload；支持流程回放与失败归因</div>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Renders</div>
+          <div class="mod-file">output/renders/scheme_*/render_*.png</div>
+          <div class="mod-desc">CogView/WANX 生成的效果图；按方案分目录存储；server.py 通过 /renders/ 静态路由暴露</div>
+        </div>
+        <div class="mod">
+          <div class="mod-name">Evaluation</div>
+          <div class="mod-file">evaluation/fixtures/*.json<br>evaluation/sample_inputs_v1.json</div>
+          <div class="mod-desc">MVP 9 条 + full stub 9 条测试 fixture；sample_inputs_v1 含 5 类项目类型样本</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /overview -->
+
+  <!-- ══════ TAB: DATA FLOW ══════ -->
+  <div class="tab-content" id="dataflow">
+    <div class="flow-section">
+      <div class="flow-title">MVP 三节点数据流</div>
+
+      <div class="flow">
+        <div class="flow-node" style="background:#1a2a1a;border-color:#1e4a1e">brief（自然语言任务书）</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">req_parser</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:#162033;border-color:#1e3a5f">structured_brief<br><small style="color:var(--muted)">project_type / area_sqm / style_preferences / audience</small></div>
+      </div>
+
+      <div class="flow">
+        <div class="flow-node" style="background:#162033;border-color:#1e3a5f">structured_brief</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">style_router</div>
+        <div class="flow-arrow" style="color:var(--orange)">→<small class="flow-label">匹配风格</small></div>
+        <div class="flow-node">get_design_spec<br><small style="color:var(--muted)">读 DESIGN.md</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">material_style</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:#162033;border-color:#1e3a5f">material_spec<br><small style="color:var(--muted)">style_key / palette / materials / direction</small></div>
+        <div class="flow-arrow" style="color:var(--teal)">+</div>
+        <div class="flow-node" style="background:#1a2a1a;border-color:#1e4a1e">wiki_update<br><small style="color:var(--muted)">知识回写</small></div>
+      </div>
+
+      <div class="flow">
+        <div class="flow-node" style="background:#162033;border-color:#1e3a5f">structured_brief<br>+ material_spec</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">visual_prompt</div>
+        <div class="flow-arrow" style="color:var(--orange)">→<small class="flow-label">GLM-4</small></div>
+        <div class="flow-node">prompt_quality<br><small style="color:var(--muted)">校验 + 修复</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:#162033;border-color:#1e3a5f">schemes[A/B/C]<br><small style="color:var(--muted)">每套 6 视角 prompt</small></div>
+      </div>
+
+      <div class="flow">
+        <div class="flow-node" style="background:#162033;border-color:#1e3a5f">schemes[A/B/C].views[].prompt</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">image_gen<br><small style="color:var(--muted)">ThreadPoolExecutor × 6</small></div>
+        <div class="flow-arrow" style="color:var(--orange)">→<small class="flow-label">CogView API</small></div>
+        <div class="flow-node" style="background:#162033;border-color:#1e3a5f">generated_schemes<br><small style="color:var(--muted)">本地 PNG + URL</small></div>
+      </div>
+
+      <div class="callout">MVP 数据链路：brief → structured_brief → material_spec → visual_prompts → rendered_images；全程由 SkillRegistry 调度，EventLogger 记录每个节点的 started/completed 事件，ProjectBoardTracker 实时更新看板状态。</div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="flow-section">
+      <div class="flow-title">Full 工作流 12 阶段（含 Stub）</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:10px">
+        <div class="flow-node" style="background:#1a2332;border-color:#1e3a5f">① req_parser<br><small style="color:var(--green)">✓ 已实现</small></div>
+        <div class="flow-node" style="background:#2a2210;border-color:#4a3a1e">② case_research<br><small style="color:var(--orange)">stub</small></div>
+        <div class="flow-node" style="background:#2a2210;border-color:#4a3a1e">③ concept<br><small style="color:var(--orange)">stub</small></div>
+        <div class="flow-node" style="background:#2a2210;border-color:#4a3a1e">④ storyline<br><small style="color:var(--orange)">stub</small></div>
+        <div class="flow-node" style="background:#2a2210;border-color:#4a3a1e">⑤ zoning<br><small style="color:var(--orange)">stub</small></div>
+        <div class="flow-node" style="background:#1a2332;border-color:#1e3a5f">⑥ material_style<br><small style="color:var(--green)">✓ 已实现</small></div>
+        <div class="flow-node" style="background:#1a2332;border-color:#1e3a5f">⑦ visual_prompt<br><small style="color:var(--green)">✓ 已实现</small></div>
+        <div class="flow-node" style="background:#1a2332;border-color:#1e3a5f">⑧ image_gen<br><small style="color:var(--green)">✓ 已实现</small></div>
+        <div class="flow-node" style="background:#2a2210;border-color:#4a3a1e">⑨ video_script<br><small style="color:var(--orange)">stub</small></div>
+        <div class="flow-node" style="background:#2a2210;border-color:#4a3a1e">⑩ cost_estimate<br><small style="color:var(--orange)">stub</small></div>
+        <div class="flow-node" style="background:#2a2210;border-color:#4a3a1e">⑪ report<br><small style="color:var(--orange)">stub</small></div>
+        <div class="flow-node" style="background:#2a2210;border-color:#4a3a1e">⑫ feedback<br><small style="color:var(--orange)">stub</small></div>
+        <div class="flow-node" style="background:#2a2210;border-color:#4a3a1e">⑬ progress<br><small style="color:var(--orange)">stub</small></div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="flow-section">
+      <div class="flow-title">事件与状态机流</div>
+      <div class="flow" style="flex-wrap:wrap;gap:6px">
+        <div class="flow-node" style="background:#231535">WAITING_FOR_USER</div>
+        <div class="flow-arrow">↔</div>
+        <div class="flow-node" style="background:#231535">WAITING_FOR_CONFIRMATION</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:#1a2332;border-color:#1e3a5f">RUNNING</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:#1a2a1a;border-color:#1e4a1e">COMPLETED</div>
+      </div>
+      <div class="flow" style="margin-top:8px">
+        <div class="flow-node" style="background:#1a2332;border-color:#1e3a5f">RUNNING</div>
+        <div class="flow-arrow" style="color:var(--red)">→</div>
+        <div class="flow-node" style="background:#2a1010;border-color:#4a1e1e">ERROR</div>
+        <span style="margin:0 10px;color:var(--muted)">or</span>
+        <div class="flow-node" style="background:#2a1010;border-color:#4a1e1e">CANCELLED</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ TAB: SPECIALISTS ══════ -->
+  <div class="tab-content" id="specialists">
+    <div class="spec-grid">
+      <div class="spec-card">
+        <div class="spec-name">req_parser</div>
+        <div class="spec-group" style="background:#1a3a1a;color:var(--green)">Research Leader</div>
+        <div class="spec-desc">从自然语言任务书提取结构化需求：project_type / area_sqm / style_preferences / audience / special_requirements</div>
+        <div class="spec-status"><span class="tag tag-mvp">✓ MVP 完整实现</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">material_style</div>
+        <div class="spec-group" style="background:#1e3a5f;color:var(--accent)">Creative Leader</div>
+        <div class="spec-desc">风格路由 → 读设计库 → 生成色板/材料/方向/照明概念；wiki_update 回写知识；支持 GLM fallback</div>
+        <div class="spec-status"><span class="tag tag-mvp">✓ MVP 完整实现</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">visual_prompt</div>
+        <div class="spec-group" style="background:#3a1e4a;color:var(--purple)">Tech Leader</div>
+        <div class="spec-desc">生成 3 套方案 × 6 视角 Prompt；注入项目类型/面积/色值/材料；GLM 增强 + prompt_quality 校验修复</div>
+        <div class="spec-status"><span class="tag tag-mvp">✓ MVP 完整实现</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">prompt_quality</div>
+        <div class="spec-group" style="background:#3a1e4a;color:var(--purple)">Tech Leader</div>
+        <div class="spec-desc">结构完整性校验（check_prompt_quality）、compile_prompt 注入管线、palette_phrase 色彩短语生成</div>
+        <div class="spec-status"><span class="tag tag-mvp">✓ 已实现</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">style_router</div>
+        <div class="spec-group" style="background:#1e3a5f;color:var(--accent)">Creative Leader</div>
+        <div class="spec-desc">多字段加权关键词匹配（project_type×4 / style_prefs×3 / special_req×3 / audience×2），输出 selected_style_key + top_candidates + tone_tags</div>
+        <div class="spec-status"><span class="tag tag-mvp">✓ 已实现</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">intake_standard</div>
+        <div class="spec-group" style="background:#1a3a1a;color:var(--green)">Research Leader</div>
+        <div class="spec-desc">输出标准对比协议；enrich_to_output_standard() 将基础 payload 扩展为符合 V1 schema 的完整结构化需求</div>
+        <div class="spec-status"><span class="tag tag-mvp">✓ 已实现</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">case_research</div>
+        <div class="spec-group" style="background:#1a3a1a;color:var(--green)">Research Leader</div>
+        <div class="spec-desc">从企业案例库按需召回相关案例，解释相关原因，输出 CaseCard 列表</div>
+        <div class="spec-status"><span class="tag tag-stub">stub 占位</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">concept</div>
+        <div class="spec-group" style="background:#1e3a5f;color:var(--accent)">Creative Leader</div>
+        <div class="spec-desc">生成 3 套概念方向（稳健/创新/成本友好）；每套含 theme_statement / spatial_strategy / linked_requirements</div>
+        <div class="spec-status"><span class="tag tag-stub">stub 占位</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">storyline</div>
+        <div class="spec-group" style="background:#1e3a5f;color:var(--accent)">Creative Leader</div>
+        <div class="spec-desc">空间叙事线设计；把概念翻译成参观路径节奏和场景转折点</div>
+        <div class="spec-status"><span class="tag tag-stub">stub 占位</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">zoning</div>
+        <div class="spec-group" style="background:#1e3a5f;color:var(--accent)">Creative Leader</div>
+        <div class="spec-desc">功能分区规划；根据需求和故事线输出各功能区面积分配与边界建议</div>
+        <div class="spec-status"><span class="tag tag-stub">stub 占位</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">video_script</div>
+        <div class="spec-group" style="background:#3a1e4a;color:var(--purple)">Tech Leader</div>
+        <div class="spec-desc">根据方案生成视频脚本：分镜、旁白、音乐风格建议</div>
+        <div class="spec-status"><span class="tag tag-stub">stub 占位</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">cost_estimate</div>
+        <div class="spec-group" style="background:#4a3a1e;color:var(--orange)">PM Leader</div>
+        <div class="spec-desc">基于面积/材料/风格输出分项成本估算和总价区间</div>
+        <div class="spec-status"><span class="tag tag-stub">stub 占位</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">report</div>
+        <div class="spec-group" style="background:#4a3a1e;color:var(--orange)">PM Leader</div>
+        <div class="spec-desc">汇报文档生成；整合全流程产物为可提交的设计前期成果包</div>
+        <div class="spec-status"><span class="tag tag-stub">stub 占位</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">feedback</div>
+        <div class="spec-group" style="background:#4a3a1e;color:var(--orange)">PM Leader</div>
+        <div class="spec-desc">处理会议反馈；将人工评审意见回灌至下一轮概念生成</div>
+        <div class="spec-status"><span class="tag tag-stub">stub 占位</span></div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-name">progress</div>
+        <div class="spec-group" style="background:#4a3a1e;color:var(--orange)">PM Leader</div>
+        <div class="spec-desc">项目进度计划；里程碑拆分与工期估算</div>
+        <div class="spec-status"><span class="tag tag-stub">stub 占位</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ TAB: API ══════ -->
+  <div class="tab-content" id="api">
+    <div class="callout" style="margin-bottom:16px">HTTP Server 端口 <b>8765</b>；支持 CORS（Access-Control-Allow-Origin: *）；所有响应 Content-Type: application/json 或 text/html</div>
+    <table class="api-table">
+      <thead>
+        <tr>
+          <th>Method</th><th>Path</th><th>功能说明</th><th>返回</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td><code>/boards/current</code></td>
+          <td>返回最新工程看板快照；图片 local_path 自动转为 /renders/ HTTP URL</td>
+          <td>project_board_current.json</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td><code>/boards</code></td>
+          <td>返回所有历史运行记录列表（project_board_index.json）</td>
+          <td>{ runs: [...] }</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td><code>/renders/&lt;path&gt;</code></td>
+          <td>提供生成图片的静态访问；支持子目录（scheme_A/render_1.png）；有路径穿越保护</td>
+          <td>image/png 等</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td><code>/status</code></td>
+          <td>查询当前是否有工作流在运行</td>
+          <td>{ running: bool, last_result_keys: [...] }</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td><code>/</code></td>
+          <td>重定向到 dashboard/index.html；提供看板 SPA</td>
+          <td>text/html</td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td><code>/run</code></td>
+          <td>在后台线程异步启动 MVP 工作流；若已在运行返回 409；支持 brief / image_provider / image_api_key 参数</td>
+          <td>202: { status: "started", brief, image_provider }</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════ TAB: STACK ══════ -->
+  <div class="tab-content" id="stack">
+    <div class="modules" style="gap:14px">
+      <div class="mod l-infra" style="min-width:220px">
+        <div class="mod-name accent">运行时</div>
+        <div class="mod-desc">Python ≥ 3.13<br>asyncio（主循环 / LLM 调用）<br>threading（HTTP server / 后台任务）<br>标准库 urllib（HTTP client，无第三方）</div>
+      </div>
+      <div class="mod l-business">
+        <div class="mod-name" style="color:var(--teal)">LLM 后端</div>
+        <div class="mod-desc">GLM-4（智谱 AI）<br>OpenAI 兼容 API<br>openai_http_transport / anthropic_http_transport（可切换）<br>消息压缩（8000 token 窗口，65% 触发摘要）</div>
+      </div>
+      <div class="mod l-tools">
+        <div class="mod-name" style="color:var(--orange)">生图服务</div>
+        <div class="mod-desc">CogView-3-Plus（默认，同账号）<br>通义万象 WANX（可选，需独立 key）<br>Mock（开发/测试，占位图）<br>并发 6 workers，429 自动重试</div>
+      </div>
+      <div class="mod l-prompt">
+        <div class="mod-name" style="color:var(--purple)">文档生成</div>
+        <div class="mod-desc">python-pptx（22 页 PPTX）<br>JSON（结构化产物落盘）<br>Markdown（wiki / DESIGN.md）</div>
+      </div>
+      <div class="mod l-io">
+        <div class="mod-name">测试</div>
+        <div class="mod-desc">pytest（26 个测试文件）<br>覆盖：types / engine / tools / storage / observability / api / skill_registry / mock_tools / mvp_flow / full_demo / image_gen / board 等</div>
+      </div>
+      <div class="mod l-io">
+        <div class="mod-name">打包</div>
+        <div class="mod-desc">setuptools ≥ 68（src layout）<br>pyproject.toml<br>requirements: pytest, python-pptx</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+function switchTab(el, id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>

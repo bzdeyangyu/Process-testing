@@ -8,6 +8,9 @@ output/
 demo_result.json
 mvp_result.json
 *_log.json
+dist/
+.launcher_venv/
+gcm-diagnose.log
 
 .DS_Store
 Thumbs.db

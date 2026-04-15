@@ -1,0 +1,13 @@
+.env
+.runtime/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+
+output/
+demo_result.json
+mvp_result.json
+*_log.json
+
+.DS_Store
+Thumbs.db

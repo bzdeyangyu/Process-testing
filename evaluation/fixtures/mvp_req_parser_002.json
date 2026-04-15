@@ -1,0 +1,1 @@
+{"eval_id":"mvp-req-002","scope":"mvp","skill":"req_parser","input":{"brief":"800㎡ 品牌科技展厅，需要沉浸式互动与品牌展示。"},"expected_fields":["project_type","area_sqm","special_requirements"]}

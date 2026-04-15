@@ -1,0 +1,1 @@
+{"eval_id":"full-cost-001","scope":"full","skill":"cost_estimate","input":{"structured_brief":{"project_type":"科技展厅","area_sqm":800}},"expected_fields":["status","output"]}

@@ -1,0 +1,1 @@
+{"eval_id":"mvp-req-003","scope":"mvp","skill":"req_parser","input":{"brief":"打造一个未来感的科技展示空间，面积约800㎡。"},"expected_fields":["project_type","area_sqm","audience"]}

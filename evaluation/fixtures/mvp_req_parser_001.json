@@ -1,0 +1,1 @@
+{"eval_id":"mvp-req-001","scope":"mvp","skill":"req_parser","input":{"brief":"为某科技企业设计 800㎡ 展厅，风格偏科技感与未来感。"},"expected_fields":["project_type","area_sqm","style_preferences"]}

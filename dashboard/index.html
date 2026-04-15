@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目实施看板</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════
+       SIDEBAR
+  ════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="brand-name">FlowBoard</span>
+    </div>
+
+    <!-- Project Selector -->
+    <div class="project-section">
+      <div class="section-label">工作区</div>
+      <div class="project-selector" id="projectSelector">
+        <div class="project-current" id="projectCurrent">
+          <span class="project-dot" id="projectDot"></span>
+          <span class="project-current-name" id="projectCurrentName">加载中...</span>
+          <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="project-dropdown" id="projectDropdown"></div>
+      </div>
+    </div>
+
+    <!-- Sub-items (12 Specialists as nav children) -->
+    <div class="project-section" style="margin-top:8px">
+      <div class="section-label">子任务</div>
+      <div class="subtask-nav" id="subtaskNav"></div>
+    </div>
+
+    <div class="sidebar-spacer"></div>
+
+    <!-- Bottom nav -->
+    <nav class="bottom-nav">
+      <a class="nav-item active" data-view="board" href="#">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/></svg>
+        看板视图
+      </a>
+      <a class="nav-item" data-view="list" href="#">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        列表视图
+      </a>
+      <a class="nav-item" data-view="timeline" href="#">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        时间线
+      </a>
+      <div class="nav-divider"></div>
+      <a class="nav-item" data-view="ai" href="#">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        AI 控制台
+      </a>
+      <a class="nav-item" data-view="renders" href="#">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" stroke-width="2"/><path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        效果图
+      </a>
+      <a class="nav-item" data-view="discuss" href="#">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        AI 讨论
+      </a>
+      <a class="nav-item" data-view="log" href="#">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="2"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        事件日志
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="agent-pill" id="agentPill">
+        <span class="agent-dot" id="agentDot"></span>
+        <span id="agentText">就绪</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ════════════════════════════════════════
+       MAIN
+  ════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="breadcrumb">
+          <span class="bc-company" id="bcCompany">公司工作区</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span class="bc-project" id="bcProject">—</span>
+        </div>
+      </div>
+      <div class="topbar-center">
+        <div class="search-bar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="text" id="searchInput" placeholder="Filter by keyword or by field" />
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="progress-chip">
+          <div class="progress-chip-bar">
+            <div class="progress-chip-fill" id="globalBar" style="width:0%"></div>
+          </div>
+          <span id="globalPct">0%</span>
+        </div>
+        <button class="topbar-btn primary" id="btnRunMVP">▶ MVP</button>
+        <button class="topbar-btn ghost" id="btnRunDemo">⬡ Demo</button>
+        <button class="topbar-btn icon" id="btnViewToggle" title="视图选项">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+          View
+        </button>
+      </div>
+    </header>
+
+    <!-- ── BOARD VIEW ────────────────────────── -->
+    <div class="view active" id="view-board">
+      <div class="board-wrap" id="boardWrap"></div>
+    </div>
+
+    <!-- ── LIST VIEW ─────────────────────────── -->
+    <div class="view" id="view-list">
+      <div class="list-wrap" id="listWrap"></div>
+    </div>
+
+    <!-- ── TIMELINE VIEW ─────────────────────── -->
+    <div class="view" id="view-timeline">
+      <div class="timeline-wrap" id="timelineWrap"></div>
+    </div>
+
+    <!-- ── AI PANEL ──────────────────────────── -->
+    <div class="view" id="view-ai">
+      <div class="ai-wrap">
+        <div class="ai-top">
+          <h2>AI 控制台</h2>
+          <span class="model-badge" id="modelBadge">未配置</span>
+        </div>
+
+        <!-- ① API 配置区 -->
+        <div class="ai-card ai-card-full" id="aiConfigCard">
+          <div class="ai-card-hd">
+            接口配置
+            <span class="config-status" id="configStatus">未连接</span>
+          </div>
+          <div class="ai-config-grid">
+            <div class="cfg-field">
+              <label>Provider</label>
+              <select id="cfgProvider">
+                <option value="openai">OpenAI / 兼容接口</option>
+                <option value="zhipu">智谱 GLM (api.bigmodel.cn)</option>
+                <option value="deepseek">DeepSeek (api.deepseek.com)</option>
+                <option value="qwen">通义千问 (dashscope.aliyuncs.com)</option>
+                <option value="custom">自定义 Base URL</option>
+              </select>
+            </div>
+            <div class="cfg-field">
+              <label>Model</label>
+              <input type="text" id="cfgModel" placeholder="gpt-4o / glm-4 / deepseek-chat" />
+            </div>
+            <div class="cfg-field cfg-field-wide">
+              <label>Base URL <span style="color:var(--text-3);font-size:11px">（空=使用Provider默认）</span></label>
+              <input type="text" id="cfgBaseUrl" placeholder="https://api.openai.com/v1" />
+            </div>
+            <div class="cfg-field cfg-field-wide">
+              <label>API Key</label>
+              <div class="key-row">
+                <input type="password" id="cfgApiKey" placeholder="sk-..." autocomplete="off" />
+                <button class="topbar-btn ghost sm" id="btnTestConn">测试连接</button>
+                <button class="topbar-btn primary sm" id="btnSaveCfg">保存</button>
+              </div>
+            </div>
+          </div>
+          <div class="cfg-tip" id="cfgTip">配置保存后，点击任意任务卡片的「触发 Skill」将调用真实 LLM 接口。</div>
+        </div>
+
+        <div class="ai-grid">
+          <div class="ai-card">
+            <div class="ai-card-hd">触发 Skill</div>
+            <div id="skillList"></div>
+          </div>
+          <div class="ai-card">
+            <div class="ai-card-hd">人工干预</div>
+            <div class="intervention">
+              <div class="int-row"><span>trace_id</span><code id="currentTrace">—</code></div>
+              <div class="int-btns">
+                <button class="int-btn warn" id="btnPause">⏸ Pause</button>
+                <button class="int-btn ok" id="btnResume">▶ Resume</button>
+                <button class="int-btn danger" id="btnCancel">✕ Cancel</button>
+              </div>
+            </div>
+          </div>
+          <div class="ai-card ai-card-wide">
+            <div class="ai-card-hd">
+              实时输出流
+              <span class="stream-mode-badge" id="streamModeBadge">Mock</span>
+            </div>
+            <div class="event-stream" id="eventStream"></div>
+          </div>
+          <div class="ai-card">
+            <div class="ai-card-hd">API 接口文档</div>
+            <div id="apiDocs"></div>
+          </div>
+        </div>
+
+        <!-- ② LLM 实时输出面板 -->
+        <div class="ai-card ai-card-full" id="llmOutputCard" style="display:none">
+          <div class="ai-card-hd">
+            LLM 输出
+            <span id="llmTaskLabel" style="font-size:11px;color:var(--text-3);margin-left:8px"></span>
+            <button class="topbar-btn ghost sm" style="margin-left:auto" id="btnCloseLLM">关闭</button>
+          </div>
+          <div class="llm-output-wrap">
+            <div class="llm-output" id="llmOutput"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RENDERS VIEW ──────────────────────── -->
+    <div class="view" id="view-renders">
+      <div class="renders-wrap">
+        <div class="renders-header">
+          <h2 style="font-size:16px;font-weight:600;color:var(--text-1)">效果图生成结果</h2>
+          <div class="renders-actions">
+            <span id="imgSelectionInfo" style="font-size:12px;color:var(--text-3)">暂无效果图</span>
+            <button class="topbar-btn ghost sm" onclick="tryLoadRenders()">刷新</button>
+          </div>
+        </div>
+
+        <!-- 运行面板 -->
+        <div class="run-panel ai-card">
+          <div class="ai-card-hd">启动工作流 <span style="font-size:11px;color:var(--text-3);margin-left:8px">（通过 server.py port 8765）</span></div>
+          <div class="run-fields">
+            <div class="cfg-field cfg-field-wide">
+              <label>任务书</label>
+              <textarea id="realBrief" rows="2" placeholder="为某科技企业设计 800㎡ 展厅，风格偏科技感与未来感，要求沉浸式互动体验。" style="width:100%;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text-1);font-size:12px;resize:vertical;"></textarea>
+            </div>
+            <div class="cfg-field">
+              <label>生图 API</label>
+              <select id="realImgProvider" style="background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text-1);font-size:12px;">
+                <option value="cogview">智谱 CogView（推荐）</option>
+                <option value="wanx">通义万象</option>
+                <option value="mock">Mock（占位图，不消耗 API）</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              <button class="topbar-btn primary" id="btnRunReal">▶ 启动真实工作流</button>
+              <span id="runStatus" style="font-size:12px;color:var(--text-3)">尚未启动</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 效果图画廊 -->
+        <div class="img-gallery" id="imgGallery">
+          <div class="gallery-empty">尚无效果图，点击"启动真实工作流"开始生成</div>
+        </div>
+
+        <!-- Prompt 查看 Modal -->
+        <div id="promptModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
+          <div style="background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:20px;max-width:700px;width:90%;max-height:60vh;overflow:auto;" onclick="event.stopPropagation()">
+            <div style="font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:10px">完整 Prompt</div>
+            <pre id="promptModalContent" style="font-size:12px;color:var(--text-1);white-space:pre-wrap;word-break:break-all;line-height:1.6"></pre>
+            <button class="topbar-btn ghost sm" style="margin-top:12px" onclick="document.getElementById('promptModal').style.display='none'">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DISCUSS VIEW ───────────────────────── -->
+    <div class="view" id="view-discuss">
+      <div class="discuss-wrap">
+        <div class="discuss-header">
+          <h2 style="font-size:16px;font-weight:600;color:var(--text-1)">AI 方案讨论室</h2>
+          <span style="font-size:12px;color:var(--text-3)">AI 实时参与方案讨论，决策自动记录</span>
+        </div>
+
+        <!-- 快捷决策按钮 -->
+        <div class="disc-quick-btns">
+          <span style="font-size:11px;color:var(--text-3);margin-right:8px">快捷指令：</span>
+          <button class="topbar-btn ghost sm" data-discuss-quick="请分析当前选定效果图的优缺点">分析效果图</button>
+          <button class="topbar-btn ghost sm" data-discuss-quick="建议优化材料方案，增强科技感">优化材料</button>
+          <button class="topbar-btn ghost sm" data-discuss-quick="根据现有方案，给出造价预算建议">造价估算</button>
+          <button class="topbar-btn ghost sm" data-discuss-quick="生成下一步的修改行动清单">输出行动清单</button>
+        </div>
+
+        <!-- 讨论日志 -->
+        <div class="disc-log" id="discussionLog"></div>
+
+        <!-- 输入区 -->
+        <div class="disc-input-row">
+          <textarea id="discInput" placeholder="输入你的想法或决策（Enter发送，Shift+Enter换行）..." rows="3"></textarea>
+          <button class="topbar-btn primary" id="discSend">发送</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:6px;padding:0 2px">提示：需在 AI 控制台配置 API Key 才能使用真实 AI 讨论；否则使用 Mock 回复。</div>
+      </div>
+    </div>
+
+    <!-- ── LOG VIEW ──────────────────────────── -->
+    <div class="view" id="view-log">
+      <div class="log-wrap">
+        <div class="log-tb">
+          <span class="log-title">事件日志</span>
+          <div class="log-tb-right">
+            <select id="logFilter" class="log-filter">
+              <option value="all">全部</option>
+              <option value="task.status">task.status</option>
+              <option value="tool.call">tool.call</option>
+              <option value="agent.thought">agent.thought</option>
+            </select>
+            <button class="topbar-btn ghost" id="btnClearLog">清空</button>
+          </div>
+        </div>
+        <div class="log-body" id="logBody"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ════════════════════════════════════════
+       TASK DETAIL DRAWER
+  ════════════════════════════════════════ -->
+  <div class="overlay" id="overlay"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-hd">
+      <div class="drawer-hd-top">
+        <span class="drawer-id" id="dId"></span>
+        <button class="drawer-close" id="drawerClose">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <h2 class="drawer-name" id="dName"></h2>
+      <!-- 详情内搜索框 -->
+      <div class="drawer-search-bar">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input type="text" id="drawerSearch" placeholder="在详情中检索…" autocomplete="off" />
+        <span id="drawerSearchCount" style="font-size:11px;color:var(--text-3);white-space:nowrap"></span>
+      </div>
+    </div>
+    <div class="drawer-body" id="drawer-body-content">
+      <div class="drawer-field">
+        <label>状态</label>
+        <select id="dStatus" class="drawer-select"></select>
+      </div>
+      <div class="drawer-field">
+        <label>负责 Leader</label>
+        <span id="dLeader"></span>
+      </div>
+      <div class="drawer-field">
+        <label>Skill</label>
+        <span id="dSkill" class="mono-tag"></span>
+      </div>
+      <div class="drawer-field">
+        <label>工具</label>
+        <div class="tag-row" id="dTools"></div>
+      </div>
+      <div class="drawer-field">
+        <label>MVP 节点</label>
+        <span id="dMvp"></span>
+      </div>
+      <div class="drawer-section">策略规则</div>
+      <div id="dRules" class="rules-list"></div>
+      <div class="drawer-section">输入 / 输出</div>
+      <div id="dIO"></div>
+      <div class="drawer-section">事件历史</div>
+      <div id="dEvents" class="events-list"></div>
+      <div class="drawer-actions">
+        <button class="topbar-btn primary full-w" id="dTrigger">✦ 触发 Skill</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toasts"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

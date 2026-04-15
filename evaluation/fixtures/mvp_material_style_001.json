@@ -1,0 +1,1 @@
+{"eval_id":"mvp-mat-001","scope":"mvp","skill":"material_style","input":{"structured_brief":{"project_type":"科技展厅","area_sqm":800,"style_preferences":["科技感","未来感"],"special_requirements":["沉浸式互动"],"audience":"企业客户与公众访客"}},"expected_fields":["style_key","palette","material_spec"]}
